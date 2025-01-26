@@ -9,7 +9,7 @@ from bpy.types import Operator, PropertyGroup, UIList
 bl_info = {
     "name": "Ref Picker",
     "author": "Packsod",
-    "version": (0, 9, 1),
+    "version": (0, 9, 2),
     "blender": (4, 1, 0),
     "category": "3D View",
     "location": "3D Viewport > Sidebar > Ref Picker",
@@ -377,6 +377,13 @@ class RefPicker:
                         image.filepath = bpy.path.relpath(new_source_file)
                         print(f"Updated image path from {source_file} to {new_source_file}")
 
+                # Update text objects
+                for child in obj.children:
+                    if child.type == 'FONT':
+                        child.name = f"3dtext_{new_name}"
+                        child.data.body = new_name
+                        print(f"Updated text object '{child.name}' to '{new_name}'")                  
+
         return "Folders renamed successfully"
 
     @staticmethod
@@ -553,14 +560,14 @@ class RefPickerPanel(bpy.types.Panel):
         row.operator("image.rename_folders", text="Rename")
         row.operator("image.show_path_info", text="", icon='INFO')
         row = layout.row()
-        row.prop(context.scene, "enable_ctrl_v_paste", text="Enable Ctrl+V Paste")
+        row.prop(context.window_manager, "enable_ctrl_v_paste", text="Enable Ctrl+V Paste")
 
 class ModalHandlerOperator(bpy.types.Operator):
     bl_idname = "image.modal_handler"
     bl_label = "Modal Handler"
 
     def modal(self, context, event):
-        if event.type == 'V' and event.value == 'PRESS' and event.ctrl and context.scene.enable_ctrl_v_paste:
+        if event.type == 'V' and event.value == 'PRESS' and event.ctrl and context.window_manager.enable_ctrl_v_paste:
             RefPicker.paste_ref_image()
             return {'RUNNING_MODAL'}  # Restart the modal handler
         return {'PASS_THROUGH'}
@@ -590,10 +597,10 @@ class HelpOperator(bpy.types.Operator):
 
         # Object information
         objects_info = [
-            ("reffolder_01-frame-name-must", (-21, 21, 0)),
-            ("reffolder_02-be-prefixed", (21, 21, 0)),
-            ("reffolder_03-with-reffolder", (-21, -21, 0)),
-            ("reffolder_04-and-underscore", (21, -21, 0))
+            ("reffolder_01-frame-name-must", (-23, 25, 0)),
+            ("reffolder_02-be-prefixed", (23, 25, 0)),
+            ("reffolder_03-with-reffolder", (-23, -25, 0)),
+            ("reffolder_04-and-underscore", (23, -25, 0))
         ]
 
         # Function to create a 3D text object
@@ -613,7 +620,7 @@ class HelpOperator(bpy.types.Operator):
             ob = bpy.data.objects.new(name, mesh)
             ob.location = loc
             bpy.context.collection.objects.link(ob)
-            create_text_object(ob, name[10:], location=(0, 0, 0))
+            create_text_object(ob, name[10:], location=(0, -25, 0))
             ob.modifiers.new(name="Wireframe", type='WIREFRAME').thickness = 0.5
 
         # Create "put images into the frames" 3D text object
@@ -621,11 +628,20 @@ class HelpOperator(bpy.types.Operator):
             None,
             "enable the Ctrl + V checkbox, paste images into Blender.\nput images into the frames,\nthen press Sync, images will be backed up.",
             size=5,
-            location=(0, 42, 0)
+            location=(0, 48, 0)
         )
 
         print("Objects have been created, positioned, and modified with wireframe modifiers.")
         return {'FINISHED'}
+
+def modal_handler_delayed_call(dummy):
+    bpy.app.handlers.depsgraph_update_post.remove(modal_handler_delayed_call)
+    if bpy.context.window_manager.enable_ctrl_v_paste:
+        bpy.ops.image.modal_handler('INVOKE_DEFAULT')
+
+def enable_ctrl_v_paste_update(self, context):
+    if self.enable_ctrl_v_paste:  # self is WindowManager now
+        bpy.ops.image.modal_handler('INVOKE_DEFAULT')
 
 # Register and unregister functions
 def register():
@@ -636,24 +652,16 @@ def register():
     bpy.utils.register_class(ModalHandlerOperator)
     bpy.utils.register_class(RefPickerRenameFoldersOperator)
     bpy.utils.register_class(HelpOperator)
-    bpy.types.Scene.enable_ctrl_v_paste = bpy.props.BoolProperty(
+    bpy.types.WindowManager.enable_ctrl_v_paste = bpy.props.BoolProperty(
         name="Enable Ctrl+V Paste",
         default=False,
-        update=enable_ctrl_v_paste_update
+        update=enable_ctrl_v_paste_update,
+        options={'SKIP_SAVE'}
     )
 
     # Only call modal_handler when running in Blender
     if not bpy.app.background:
         bpy.app.handlers.depsgraph_update_post.append(modal_handler_delayed_call)
-
-def modal_handler_delayed_call(dummy):
-    bpy.app.handlers.depsgraph_update_post.remove(modal_handler_delayed_call)
-    if bpy.context.scene.enable_ctrl_v_paste:
-        bpy.ops.image.modal_handler('INVOKE_DEFAULT')
-
-def enable_ctrl_v_paste_update(self, context):
-    if self.enable_ctrl_v_paste:
-        bpy.ops.image.modal_handler('INVOKE_DEFAULT')
 
 def unregister():
     bpy.utils.unregister_class(RefPickerOperator)
@@ -663,7 +671,7 @@ def unregister():
     bpy.utils.unregister_class(ModalHandlerOperator)
     bpy.utils.unregister_class(RefPickerRenameFoldersOperator)
     bpy.utils.unregister_class(HelpOperator)
-    del bpy.types.Scene.enable_ctrl_v_paste
+    del bpy.types.WindowManager.enable_ctrl_v_paste
 
     # Only call modal_handler when running in Blender
     if not bpy.app.background:
