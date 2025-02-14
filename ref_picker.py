@@ -536,6 +536,7 @@ class ShowPathInfoOperator(bpy.types.Operator):
                 paths.append(reffolder_path)
 
         if paths:
+            paths.insert(0, "***Paths***")  # Add placeholder at the beginning
             RefPicker.show_popup("\n".join(paths), title="Path Info has been copied to your clipboard!", icon='INFO')
             bpy.context.window_manager.clipboard = "\n".join(paths)
         else:
