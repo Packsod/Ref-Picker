@@ -10,7 +10,7 @@ I usually load a lot of images and feed them to the diffusion models in ComfyUI.
 
 ## Solution:
 
-Inspired by PureRef, but not a reference image tool in the general sense, Ref Picker offers the added advantage of real-time management for multiple image folders. Ref Picker allows users to manage multiple image groups through an overview view and sync changes with corresponding folders, ensuring that the images can be easily utilized later in other pipelines. making it particularly useful for organizing image datasets.
+Inspired by PureRef, but not a reference image tool in the general sense, Ref Picker allows users to manage multiple image groups through an overview view and sync changes(copy, paste, move, delete) with corresponding folders, ensuring that the images can be easily utilized later in other pipelines. making it particularly useful for organizing image datasets.
 
 ![ref-picker-ani01](/images/ref-picker-ani01.gif)
 
