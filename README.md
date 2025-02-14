@@ -19,14 +19,23 @@ Inspired by PureRef, but not a reference image tool in the general sense, Ref Pi
 ![op.png](/images/ref-picker-img02-optimized.png)
 
 Instead of manage images in ComfyUI, handle them in Blender, which eliminates the need for many redundant image loader nodes.
+* * *
+
+## **Changelog:**
+
+update 0, 9, 2
+
+- Fixed inconsistency between the checkbox display status and the actual status.
+- Improved the template, now add adaptive image frame name 3D text
+- Add a placeholder to the 1st line in path info
 
 * * *
 
 ## **Installation:**
 
-All you need to do is download the latest release, and install as a .zip file from inside Blender.
+Download ref_picker.py and install it in Blender by going to Preferences > Add-ons > Install from Disk, then selecting the downloaded file from your disk.
 
-Alternatively, you can run it directly by copying the *init*.py code into the Blender text editor and executing it, without install it.
+Alternatively, you can run it directly by copying ref_picker.py code into the Blender text editor and executing it, without install it.
 
 * * *
 
